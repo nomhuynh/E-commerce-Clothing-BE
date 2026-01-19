@@ -76,8 +76,6 @@ out/
 ### Eclipse ###
 .metadata
 tmp/
-*.tmp
-*.bak
 *.swp
 *~.nib
 local.properties
@@ -130,16 +128,18 @@ $RECYCLE.BIN/
 *.lnk
 
 ### Linux ###
-*~
 .fuse_hidden*
 .directory
 .Trash-*
 .nfs*
 
 ### Database ###
-*.sql
+# Ignore database files but allow schema and migration files
 *.sqlite
 *.db
+*backup.sql
+*dump.sql
+temp*.sql
 
 ### Environment Variables & Configuration ###
 .env
@@ -179,9 +179,7 @@ test-results/
 docs/_build/
 site/
 
-### Temporary Files ###
-*.tmp
-*.temp
+### Temporary Directories ###
 tmp/
 temp/
 
@@ -200,8 +198,10 @@ temp/
 !.vscode/extensions.json
 *.code-workspace
 
-### Backup files ###
+### Backup and Temporary files ###
 *.bak
 *.backup
 *.old
 *~
+*.tmp
+*.temp
