@@ -25,7 +25,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Phone
+    @jakarta.validation.constraints.Pattern(regexp = "^\\d{10}$", message = "Phone number must be 10 digits")
     @Column(unique = true, nullable = false)
     private String phone;
 
