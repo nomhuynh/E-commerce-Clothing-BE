@@ -10,6 +10,7 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
             - v1-dependencies-
+      - run: chmod +x mvnw
       - run:
           name: Build and Test
           command: ./mvnw clean install
