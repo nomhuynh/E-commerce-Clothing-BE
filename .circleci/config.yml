@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build-and-test:
     docker:
-      - image: cimg/openjdk:25.0.0
+      - image: maven:3.9-eclipse-temurin-25
     steps:
       - checkout
       - restore_cache:
