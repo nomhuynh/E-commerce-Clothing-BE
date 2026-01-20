@@ -5,20 +5,25 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import lombok.experimental.SuperBuilder;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "users")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+@EqualsAndHashCode(callSuper = true)
+public class User extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @NotBlank
     @Email
@@ -35,13 +40,16 @@ public class User {
     @Column(name = "full_name")
     private String fullName;
 
+    @Builder.Default
     @Column(name = "is_block", nullable = false)
     private Boolean isBlock = false;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AuthProvider provider = AuthProvider.LOCAL;
