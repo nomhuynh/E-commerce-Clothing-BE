@@ -4,6 +4,10 @@ jobs:
   build:
     docker:
       - image: cimg/openjdk:25.0
+      - image: cimg/mysql:8.0
+        environment:
+          MYSQL_DATABASE: stylex
+          MYSQL_ROOT_PASSWORD: 123456
     steps:
       - checkout
       - restore_cache:
