@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Tuple
 
 MAX_DIFF_CHARS = int(os.getenv("AI_REVIEW_MAX_DIFF_CHARS", "12000"))
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 
 def run(cmd: list[str]) -> str:
