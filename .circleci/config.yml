@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build-and-test:
     docker:
-      - image: maven:3.9-eclipse-temurin-25
+      - image: maven:3.9-eclipse-temurin-21
     steps:
       - checkout
       - restore_cache:
@@ -20,6 +20,6 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
 workflows:
-  sample:
+  build-and-test-workflow:
     jobs:
       - build-and-test
