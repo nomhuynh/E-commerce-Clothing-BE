@@ -1,10 +1,10 @@
 package com.clothingstore.backend.service.impl;
 
 import com.clothingstore.backend.dto.auth.RegisterRequest;
-import com.clothingstore.backend.entity.AuthProvider;
-import com.clothingstore.backend.entity.Role;
 import com.clothingstore.backend.entity.User;
-import com.clothingstore.backend.entity.UserStatus;
+import com.clothingstore.backend.entity.enums.AuthProvider;
+import com.clothingstore.backend.entity.enums.Role;
+import com.clothingstore.backend.entity.enums.UserStatus;
 import com.clothingstore.backend.repository.UserRepository;
 import com.clothingstore.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;

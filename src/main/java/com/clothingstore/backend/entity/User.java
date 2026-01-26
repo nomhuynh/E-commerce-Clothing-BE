@@ -1,16 +1,10 @@
 package com.clothingstore.backend.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
+import com.clothingstore.backend.entity.enums.AuthProvider;
+import com.clothingstore.backend.entity.enums.Gender;
+import com.clothingstore.backend.entity.enums.Role;
+import com.clothingstore.backend.entity.enums.TierLevel;
+import com.clothingstore.backend.entity.enums.UserStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
