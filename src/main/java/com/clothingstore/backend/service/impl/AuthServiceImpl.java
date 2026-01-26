@@ -1,9 +1,10 @@
 package com.clothingstore.backend.service.impl;
 
 import com.clothingstore.backend.dto.auth.RegisterRequest;
-import com.clothingstore.backend.entity.AuthProvider;
-import com.clothingstore.backend.entity.Role;
 import com.clothingstore.backend.entity.User;
+import com.clothingstore.backend.entity.enums.AuthProvider;
+import com.clothingstore.backend.entity.enums.Role;
+import com.clothingstore.backend.entity.enums.UserStatus;
 import com.clothingstore.backend.repository.UserRepository;
 import com.clothingstore.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +23,20 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
-        if (userRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone already exists");
+        // Assuming existsByPhone is renamed to existsByPhoneNumber in repo
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new RuntimeException("Phone number already exists");
         }
 
         User user = User.builder()
-                .fullName(request.getFullName())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .phone(request.getPhone())
-                .role(Role.USER)
-                .provider(AuthProvider.LOCAL)
-                .isBlock(false)
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .phoneNumber(request.getPhoneNumber())
+                .role(Role.CUSTOMER)
+                .authProvider(AuthProvider.LOCAL)
+                .status(UserStatus.ACTIVE)
                 .build();
 
         return userRepository.save(user);

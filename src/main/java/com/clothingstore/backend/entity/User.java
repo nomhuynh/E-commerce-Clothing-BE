@@ -1,16 +1,13 @@
 package com.clothingstore.backend.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.clothingstore.backend.entity.enums.AuthProvider;
+import com.clothingstore.backend.entity.enums.Gender;
+import com.clothingstore.backend.entity.enums.Role;
+import com.clothingstore.backend.entity.enums.TierLevel;
+import com.clothingstore.backend.entity.enums.UserStatus;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import lombok.experimental.SuperBuilder;
-import lombok.EqualsAndHashCode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -19,10 +16,13 @@ import lombok.EqualsAndHashCode;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@SQLDelete(sql = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "user_id")
     private String id;
 
     @NotBlank
@@ -30,30 +30,73 @@ public class User extends BaseEntity {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @jakarta.validation.constraints.Pattern(regexp = "^\\d{10}$", message = "Phone number must be 10 digits")
-    @Column(unique = true, nullable = false)
-    private String phone;
+    @Column(name = "phone_number", unique = true, length = 15)
+    private String phoneNumber;
 
-    @Column(nullable = false)
-    private String password;
-
-    @Column(name = "full_name")
-    private String fullName;
+    @Column(name = "password_hash")
+    private String passwordHash;
 
     @Builder.Default
-    @Column(name = "is_block", nullable = false)
-    private Boolean isBlock = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", length = 50)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    @Column(name = "auth_provider_id")
+    private String authProviderId;
+
+    @Column(name = "first_name", nullable = false, length = 50)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false, length = 50)
+    private String lastName;
+
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(columnDefinition = "json")
+    private String preferences;
+
+    @Builder.Default
+    @Column(name = "loyalty_points")
+    private Integer loyaltyPoints = 0;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tier_level")
+    private TierLevel tierLevel = TierLevel.BRONZE;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role = Role.USER;
+    private Role role = Role.CUSTOMER;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AuthProvider provider = AuthProvider.LOCAL;
+    private UserStatus status = UserStatus.ACTIVE;
 
-    @Column(name = "provider_id")
-    private String providerId;
+    @Builder.Default
+    @Column(name = "is_email_verified")
+    private Boolean isEmailVerified = false;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+
+    @Column(name = "reset_password_expires")
+    private LocalDateTime resetPasswordExpires;
+
+    @Column(name = "email_verification_token")
+    private String emailVerificationToken;
+
+    @Column(name = "email_verification_expires")
+    private LocalDateTime emailVerificationExpires;
 }
