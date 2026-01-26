@@ -1,148 +1,110 @@
-#!/usr/bin/env python3
-"""Generate an AI code review for the latest changes."""
-from __future__ import annotations
-
-import json
 import os
-import subprocess
-import sys
-from pathlib import Path
-from typing import Tuple
+import json
+import google.generativeai as genai
+from github import Github
 
-MAX_DIFF_CHARS = int(os.getenv("AI_REVIEW_MAX_DIFF_CHARS", "12000"))
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+def get_pr_details():
+    """Reads PR details from GitHub Actions event payload."""
+    with open(os.getenv('GITHUB_EVENT_PATH'), 'r') as f:
+        event = json.load(f)
+    return event['pull_request']
 
+def get_diff(repo, pr_number):
+    """Fetches the diff of the Pull Request."""
+    pr = repo.get_pull(pr_number)
+    # Using 'requests' or direct access might be needed if PyGithub doesn't give raw diff easily,
+    # but pr.get_files() gives files. However, for a full diff suitable for LLM, 
+    # we might want the patch for each file.
+    diff_content = ""
+    for file in pr.get_files():
+        diff_content += f"file: {file.filename}\n"
+        diff_content += f"status: {file.status}\n"
+        diff_content += f"patch:\n{file.patch}\n\n"
+    return diff_content
 
-def run(cmd: list[str]) -> str:
-    return subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT)
+def main():
+    api_key = os.getenv("GEMINI_API_KEY")
+    github_token = os.getenv("GITHUB_TOKEN")
 
+    if not api_key:
+        print("Error: GEMINI_API_KEY is missing.")
+        return
+    if not github_token:
+        print("Error: GITHUB_TOKEN is missing.")
+        return
 
-def load_event() -> dict:
-    event_path = os.getenv("GITHUB_EVENT_PATH")
-    if not event_path:
-        return {}
-    path = Path(event_path)
-    if not path.exists():
-        return {}
-    return json.loads(path.read_text())
+    # 1. Setup Gemini
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-2.5-flash')
 
+    # 2. Setup GitHub
+    g = Github(github_token)
+    repo_name = os.getenv("GITHUB_REPOSITORY")
+    repo = g.get_repo(repo_name)
 
-def resolve_range(event: dict, event_name: str) -> Tuple[str | None, str | None]:
-    if event_name == "pull_request":
-        pr = event.get("pull_request", {})
-        return pr.get("base", {}).get("sha"), pr.get("head", {}).get("sha")
-    if event_name == "push":
-        return event.get("before"), event.get("after")
-    return None, None
+    # 3. Get PR info
+    try:
+        pr_data = get_pr_details()
+        pr_number = pr_data['number']
+    except Exception as e:
+        print(f"Failed to get PR details: {e}")
+        return
 
+    print(f"Reviewing PR #{pr_number} in {repo_name}")
 
-def load_ruleset() -> str:
-    rules_path = Path(__file__).resolve().parents[1] / "docs" / "ai-review-ruleset.md"
-    if rules_path.exists():
-        return rules_path.read_text().strip()
-    return "No custom ruleset provided."
+    # 4. Get Diff
+    diff_text = get_diff(repo, pr_number)
+    if not diff_text:
+        print("No diff found or empty PR.")
+        return
 
+    # 5. Get Ruleset
+    ruleset = ""
+    ruleset_path = "docs/ai-review-ruleset.md"
+    if os.path.exists(ruleset_path):
+        with open(ruleset_path, "r", encoding="utf-8") as f:
+            ruleset = f.read()
 
-def collect_diff(base: str | None, head: str | None) -> Tuple[str, bool, str, str]:
-    """Return diff text (possibly truncated) and the resolved SHAs."""
-    if not head:
-        head = run(["git", "rev-parse", "HEAD"]).strip()
-    if not base:
-        base = run(["git", "rev-parse", f"{head}~1"]).strip()
+    # 6. Generate Prompt
+    prompt = f"""
+You are an expert Senior Software Engineer and Code Reviewer. 
+Your task is to review the following code changes (diff) from a GitHub Pull Request.
 
-    diff_cmd = ["git", "diff", f"{base}..{head}", "--unified=3", "--no-color"]
-    diff = run(diff_cmd)
+**Context:**
+- Repository: {repo_name}
 
-    truncated = False
-    if len(diff) > MAX_DIFF_CHARS:
-        diff = diff[:MAX_DIFF_CHARS]
-        truncated = True
+**Instructions:**
+1. Analyze the usage of the changes.
+2. Identify potential bugs, security issues, performance problems, or bad practices.
+3. Suggest improvements or refactoring if necessary.
+4. Be crucial but constructive and polite.
+5. If the code is good, just say "LGTM!" and give a brief positive summary.
+6. **IMPORTANT:** Follow the specific project rules below (if any).
 
-    return diff, truncated, base, head
-
-
-def build_prompt(ruleset: str, diff: str, truncated: bool) -> str:
-    note = "\n\nNote: Diff was truncated for size; limit conclusions accordingly." if truncated else ""
-    return f"""Repository ruleset:
+**Project Rules:**
 {ruleset}
 
-Perform a concise senior-level code review of the diff below.
-- Focus on correctness, security, data handling, performance, and missing tests.
-- Group findings, avoid restating the diff, and keep to <= 8 bullets.
-- If nothing critical is found, say so and mention any residual risk.
-{note}
+**Code Changes (Diff):**
+```diff
+{diff_text}
+```
 
-Diff:
-{diff}
+**Output Format:**
+Please provide your review in Markdown format.
 """
 
-
-def generate_review(prompt: str, model: str) -> str:
+    # 7. Call Gemini
     try:
-        import google.generativeai as genai
-    except ImportError as exc:
-        raise RuntimeError("google-generativeai package is required. Did pip install run?") from exc
+        response = model.generate_content(prompt)
+        review_comment = response.text
+    except Exception as e:
+        print(f"Gemini API Error: {e}")
+        return
 
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY is not set in the environment.")
-
-    genai.configure(api_key=api_key)
-    
-    system_instruction = "You are a precise, concise code reviewer. Call out critical issues and missing tests."
-    full_prompt = f"{system_instruction}\n\n{prompt}"
-    
-    client = genai.GenerativeModel(
-        model_name=model,
-        generation_config={
-            "temperature": 0.2,
-            "max_output_tokens": 800,
-        }
-    )
-    
-    response = client.generate_content(full_prompt)
-    return response.text.strip()
-
-
-def write_report(content: str, base: str, head: str, event_name: str, model: str, truncated: bool) -> Path:
-    report = Path("ai-review.md")
-    header = [
-        "# AI Commit Review",
-        f"- Event: {event_name}",
-        f"- Base: {base}",
-        f"- Head: {head}",
-        f"- Model: {model}",
-        "",
-        "## Findings",
-        content,
-    ]
-    if truncated:
-        header.append("\n_Note: Diff truncated for size; review only covers the visible changes._")
-    report.write_text("\n".join(header).strip() + "\n")
-    return report
-
-
-def main() -> int:
-    event = load_event()
-    event_name = os.getenv("GITHUB_EVENT_NAME", "local")
-    base, head = resolve_range(event, event_name)
-    diff, truncated, base, head = collect_diff(base, head)
-
-    ruleset = load_ruleset()
-    prompt = build_prompt(ruleset, diff, truncated)
-    review = generate_review(prompt, DEFAULT_MODEL)
-    report_path = write_report(review, base, head, event_name, DEFAULT_MODEL, truncated)
-
-    print(report_path.read_text())
-    return 0
-
+    # 8. Post Comment
+    pr = repo.get_pull(pr_number)
+    pr.create_issue_comment(review_comment)
+    print("Review comment posted successfully.")
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except subprocess.CalledProcessError as err:
-        print(f"Command failed: {err.cmd}\n{err.output}", file=sys.stderr)
-        sys.exit(1)
-    except Exception as exc:  # pylint: disable=broad-except
-        print(f"Error: {exc}", file=sys.stderr)
-        sys.exit(1)
+    main()
