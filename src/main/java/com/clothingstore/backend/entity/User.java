@@ -5,6 +5,13 @@ import com.clothingstore.backend.entity.enums.Gender;
 import com.clothingstore.backend.entity.enums.Role;
 import com.clothingstore.backend.entity.enums.TierLevel;
 import com.clothingstore.backend.entity.enums.UserStatus;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
