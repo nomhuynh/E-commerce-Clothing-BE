@@ -7,8 +7,10 @@ import java.util.List;
 public interface CategoryService {
     Category create(Category category);
     Category update(Category category);
-    Category getById(String id);
-    Category getBySlug(String slug);
-    List<Category> getAll();
     void delete(String id);
+    Category getById(String id);
+    List<Category> getAll();
+    List<Category> getByParentId(String parentId);
+    boolean existsBySlug(String slug);
+    boolean existsById(String id);
 }
