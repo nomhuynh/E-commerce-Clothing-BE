@@ -26,10 +26,10 @@ public class ProductImageServiceImpl implements ProductImageService {
     public ProductImage update(ProductImage image) {
         ProductImage existing = productImageRepository.findById(image.getId())
                 .orElseThrow(() -> new RuntimeException("Image not found"));
-        
+
         if (image.getImageUrl() != null) existing.setImageUrl(image.getImageUrl());
         if (image.getDisplayOrder() != null) existing.setDisplayOrder(image.getDisplayOrder());
-        
+
         return productImageRepository.save(existing);
     }
 
@@ -42,6 +42,11 @@ public class ProductImageServiceImpl implements ProductImageService {
     @Override
     public List<ProductImage> getByProductId(String productId) {
         return productImageRepository.findByProductIdOrderByDisplayOrderAsc(productId);
+    }
+
+    @Override
+    public List<ProductImage> getAll() {
+        return productImageRepository.findAll();
     }
 
     @Override
@@ -58,14 +63,14 @@ public class ProductImageServiceImpl implements ProductImageService {
     public ProductImage setThumbnail(String id) {
         ProductImage image = getById(id);
         String productId = image.getProduct().getId();
-        
+
         // Reset all thumbnails for this product
         List<ProductImage> images = productImageRepository.findByProductIdOrderByDisplayOrderAsc(productId);
         for (ProductImage img : images) {
             img.setIsThumbnail(false);
             productImageRepository.save(img);
         }
-        
+
         // Set new thumbnail
         image.setIsThumbnail(true);
         return productImageRepository.save(image);

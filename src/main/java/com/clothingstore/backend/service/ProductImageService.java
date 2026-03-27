@@ -9,6 +9,7 @@ public interface ProductImageService {
     ProductImage update(ProductImage image);
     ProductImage getById(String id);
     List<ProductImage> getByProductId(String productId);
+    List<ProductImage> getAll();
     void delete(String id);
     ProductImage setThumbnail(String id);
     void reorder(List<String> imageIds);
