@@ -29,10 +29,10 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     public ProductVariant update(ProductVariant variant) {
         ProductVariant existing = productVariantRepository.findById(variant.getId())
                 .orElseThrow(() -> new RuntimeException("Variant not found"));
-        
+
         if (variant.getSku() != null) existing.setSku(variant.getSku());
         if (variant.getPrice() != null) existing.setPrice(variant.getPrice());
-        
+
         return productVariantRepository.save(existing);
     }
 
