@@ -88,6 +88,42 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public OrderResponse getByIdForUser(String orderId, String userId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        return toResponse(order);
+    }
+
+    @Override
+    public OrderResponse cancelOrder(String orderId, String userId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!(order.getOrderStatus() == OrderStatus.PENDING || order.getOrderStatus() == OrderStatus.CONFIRMED)) {
+            throw new RuntimeException("Order cannot be cancelled in current status");
+        }
+
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        return toResponse(orderRepository.save(order));
+    }
+
+    @Override
+    public OrderResponse requestReturn(String orderId, String userId, String reason) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getOrderStatus() != OrderStatus.DELIVERED) {
+            throw new RuntimeException("Only delivered orders can request return");
+        }
+
+        order.setNote(reason != null && !reason.isBlank()
+                ? (order.getNote() == null ? "RETURN_REQUEST: " + reason : order.getNote() + "\nRETURN_REQUEST: " + reason)
+                : (order.getNote() == null ? "RETURN_REQUEST" : order.getNote() + "\nRETURN_REQUEST"));
+        order.setOrderStatus(OrderStatus.RETURNED);
+        return toResponse(orderRepository.save(order));
+    }
+
+    @Override
     public OrderResponse updateStatus(String orderId, String status) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         order.setOrderStatus(OrderStatus.valueOf(status));

@@ -28,7 +28,7 @@ public class ProductImageServiceImpl implements ProductImageService {
                 .orElseThrow(() -> new RuntimeException("Image not found"));
 
         if (image.getImageUrl() != null) existing.setImageUrl(image.getImageUrl());
-        if (image.getDisplayOrder() != null) existing.setDisplayOrder(image.getDisplayOrder());
+        if (image.getSortOrder() != null) existing.setSortOrder(image.getSortOrder());
 
         return productImageRepository.save(existing);
     }
@@ -41,7 +41,7 @@ public class ProductImageServiceImpl implements ProductImageService {
 
     @Override
     public List<ProductImage> getByProductId(String productId) {
-        return productImageRepository.findByProductIdOrderByDisplayOrderAsc(productId);
+        return productImageRepository.findByProductIdOrderBySortOrderAsc(productId);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class ProductImageServiceImpl implements ProductImageService {
         String productId = image.getProduct().getId();
 
         // Reset all thumbnails for this product
-        List<ProductImage> images = productImageRepository.findByProductIdOrderByDisplayOrderAsc(productId);
+        List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrderAsc(productId);
         for (ProductImage img : images) {
             img.setIsThumbnail(false);
             productImageRepository.save(img);
@@ -81,7 +81,7 @@ public class ProductImageServiceImpl implements ProductImageService {
     public void reorder(List<String> imageIds) {
         for (int i = 0; i < imageIds.size(); i++) {
             ProductImage image = getById(imageIds.get(i));
-            image.setDisplayOrder(i);
+            image.setSortOrder(i);
             productImageRepository.save(image);
         }
     }
