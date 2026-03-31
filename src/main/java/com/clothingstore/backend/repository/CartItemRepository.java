@@ -3,8 +3,11 @@ package com.clothingstore.backend.repository;
 import com.clothingstore.backend.entity.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CartItemRepository extends JpaRepository<CartItem, String> {
     Optional<CartItem> findByCartIdAndVariantId(String cartId, String variantId);
+    List<CartItem> findByCartId(String cartId);
+    void deleteByCartId(String cartId);
 }

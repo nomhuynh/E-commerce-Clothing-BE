@@ -85,7 +85,7 @@ public class ProductImageController {
         }
         
         image.setImageUrl(request.getImageUrl());
-        image.setDisplayOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() : 0);
+        image.setSortOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() : 0);
         image.setIsThumbnail(request.getIsThumbnail() != null ? request.getIsThumbnail() : false);
         
         return image;
@@ -96,7 +96,7 @@ public class ProductImageController {
                 .id(image.getId())
                 .productId(image.getProduct() != null ? image.getProduct().getId() : null)
                 .imageUrl(image.getImageUrl())
-                .displayOrder(image.getDisplayOrder())
+                .displayOrder(image.getSortOrder())
                 .isThumbnail(image.getIsThumbnail())
                 .createdAt(image.getCreatedAt())
                 .updatedAt(image.getUpdatedAt())

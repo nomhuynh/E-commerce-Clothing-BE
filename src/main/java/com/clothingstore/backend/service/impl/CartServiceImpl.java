@@ -1,13 +1,13 @@
 package com.clothingstore.backend.service.impl;
 
-import com.clothingstore.backend.dto.cart.CartRequest;
-import com.clothingstore.backend.dto.cart.CartResponse;
+import com.clothingstore.backend.dto.cart.*;
 import com.clothingstore.backend.entity.*;
 import com.clothingstore.backend.repository.*;
 import com.clothingstore.backend.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 @Service
@@ -18,6 +18,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final CouponRepository couponRepository;
 
     @Override
     public CartResponse getCart(String userId) {
@@ -29,7 +30,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse addItem(CartRequest request) {
+    public CartResponse addItem(AddCartItemRequest request) {
         Cart cart = cartRepository.findByUserId(request.getUserId())
                 .orElseGet(() -> cartRepository.save(Cart.builder()
                         .user(userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found")))
@@ -48,13 +49,13 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse updateItem(CartRequest request) {
-        Cart cart = cartRepository.findByUserId(request.getUserId()).orElseThrow(() -> new RuntimeException("Cart not found"));
-        CartItem item = cartItemRepository.findByCartIdAndVariantId(cart.getId(), request.getVariantId())
+    public CartResponse updateItem(String userId, String variantId, UpdateCartItemRequest request) {
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Cart not found"));
+        CartItem item = cartItemRepository.findByCartIdAndVariantId(cart.getId(), variantId)
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
         item.setQuantity(request.getQuantity());
         cartItemRepository.save(item);
-        return getCart(request.getUserId());
+        return getCart(userId);
     }
 
     @Override
@@ -63,6 +64,41 @@ public class CartServiceImpl implements CartService {
         CartItem item = cartItemRepository.findByCartIdAndVariantId(cart.getId(), variantId)
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
         cartItemRepository.delete(item);
+        return getCart(userId);
+    }
+
+    @Override
+    public CartResponse applyCoupon(ApplyCouponRequest request) {
+        Cart cart = cartRepository.findByUserId(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        Coupon coupon = couponRepository.findByCode(request.getCode())
+                .orElseThrow(() -> new RuntimeException("Coupon not found"));
+
+        if (!Boolean.TRUE.equals(coupon.getIsActive()) || coupon.getEndDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Coupon is not valid");
+        }
+
+        cart.setCoupon(coupon);
+        cartRepository.save(cart);
+        return getCart(request.getUserId());
+    }
+
+    @Override
+    public CartResponse removeCoupon(String userId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        cart.setCoupon(null);
+        cartRepository.save(cart);
+        return getCart(userId);
+    }
+
+    @Override
+    public CartResponse clearCart(String userId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        cartItemRepository.deleteByCartId(cart.getId());
         return getCart(userId);
     }
 

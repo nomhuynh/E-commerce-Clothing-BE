@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface ProductImageRepository extends JpaRepository<ProductImage, String> {
     List<ProductImage> findByProductId(String productId);
-    List<ProductImage> findByProductIdOrderByDisplayOrderAsc(String productId);
+    List<ProductImage> findByProductIdOrderBySortOrderAsc(String productId);
 }
