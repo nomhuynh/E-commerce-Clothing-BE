@@ -42,6 +42,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<Product> search(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return productRepository.findAll();
+        }
+        return productRepository.findByNameContainingIgnoreCase(keyword);
+    }
+
+    @Override
     public void delete(String id) {
         if (!productRepository.existsById(id)) {
             throw new RuntimeException("Product not found");

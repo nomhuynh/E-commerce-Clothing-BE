@@ -51,6 +51,38 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     }
 
     @Override
+    public List<ProductVariant> getByProductId(String productId) {
+        return productVariantRepository.findByProductId(productId);
+    }
+
+    @Override
+    public ProductVariant updateStock(String id, Integer quantity, String operation) {
+        ProductVariant variant = productVariantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+
+        if (quantity == null || quantity < 0) {
+            throw new RuntimeException("Quantity must be >= 0");
+        }
+
+        int current = variant.getStockQuantity() != null ? variant.getStockQuantity() : 0;
+        int next;
+        if ("set".equalsIgnoreCase(operation)) {
+            next = quantity;
+        } else if ("decrease".equalsIgnoreCase(operation)) {
+            next = current - quantity;
+        } else {
+            next = current + quantity;
+        }
+
+        if (next < 0) {
+            throw new RuntimeException("Insufficient stock");
+        }
+
+        variant.setStockQuantity(next);
+        return productVariantRepository.save(variant);
+    }
+
+    @Override
     public void delete(String id) {
         if (!productVariantRepository.existsById(id)) {
             throw new RuntimeException("Variant not found");
