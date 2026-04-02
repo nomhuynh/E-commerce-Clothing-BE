@@ -10,5 +10,7 @@ public interface ProductVariantService {
     ProductVariant getById(String id);
     ProductVariant getBySku(String sku);
     List<ProductVariant> getAll();
+    List<ProductVariant> getByProductId(String productId);
+    ProductVariant updateStock(String id, Integer quantity, String operation);
     void delete(String id);
 }
