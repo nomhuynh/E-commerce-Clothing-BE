@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -55,12 +56,14 @@ public class AdminCouponController {
     private Coupon toEntity(CouponRequest request) {
         Coupon coupon = new Coupon();
         coupon.setCode(request.getCode());
+        coupon.setDescription(request.getDescription());
         coupon.setDiscountType(request.getDiscountType());
         coupon.setDiscountValue(request.getDiscountValue());
-        coupon.setMinOrderAmount(request.getMinOrderAmount());
+        coupon.setMinOrderValue(request.getMinOrderValue() != null ? request.getMinOrderValue() : BigDecimal.ZERO);
         coupon.setMaxDiscountAmount(request.getMaxDiscountAmount());
         coupon.setUsageLimit(request.getUsageLimit());
-        coupon.setUsedCount(request.getUsedCount() != null ? request.getUsedCount() : 0);
+        coupon.setUsageCount(request.getUsageCount() != null ? request.getUsageCount() : 0);
+        coupon.setPerUserLimit(request.getPerUserLimit() != null ? request.getPerUserLimit() : 1);
         coupon.setStartDate(request.getStartDate());
         coupon.setEndDate(request.getEndDate());
         coupon.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
@@ -71,12 +74,14 @@ public class AdminCouponController {
         return CouponResponse.builder()
                 .id(coupon.getId())
                 .code(coupon.getCode())
+                .description(coupon.getDescription())
                 .discountType(coupon.getDiscountType())
                 .discountValue(coupon.getDiscountValue())
-                .minOrderAmount(coupon.getMinOrderAmount())
+                .minOrderValue(coupon.getMinOrderValue())
                 .maxDiscountAmount(coupon.getMaxDiscountAmount())
                 .usageLimit(coupon.getUsageLimit())
-                .usedCount(coupon.getUsedCount())
+                .usageCount(coupon.getUsageCount())
+                .perUserLimit(coupon.getPerUserLimit())
                 .startDate(coupon.getStartDate())
                 .endDate(coupon.getEndDate())
                 .isActive(coupon.getIsActive())
