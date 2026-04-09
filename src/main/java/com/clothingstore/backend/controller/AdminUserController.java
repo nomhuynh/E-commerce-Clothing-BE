@@ -49,10 +49,29 @@ public class AdminUserController {
     private User toEntity(UserRequest request) {
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setFullName(request.getFullName());
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setRole(request.getRole());
-        user.setIsActive(request.getIsActive());
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        if (request.getPasswordHash() != null) {
+            user.setPasswordHash(request.getPasswordHash());
+        }
+        user.setAuthProvider(request.getAuthProvider());
+        user.setAuthProviderId(request.getAuthProviderId());
+        user.setAvatarUrl(request.getAvatarUrl());
+        user.setGender(request.getGender());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setPreferences(request.getPreferences());
+        user.setLoyaltyPoints(request.getLoyaltyPoints());
+        user.setTierLevel(request.getTierLevel());
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
+        if (request.getStatus() != null) {
+            user.setStatus(request.getStatus());
+        }
+        if (request.getIsEmailVerified() != null) {
+            user.setIsEmailVerified(request.getIsEmailVerified());
+        }
         return user;
     }
 
@@ -60,11 +79,21 @@ public class AdminUserController {
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
+                .authProvider(user.getAuthProvider())
+                .authProviderId(user.getAuthProviderId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .avatarUrl(user.getAvatarUrl())
+                .gender(user.getGender())
+                .dateOfBirth(user.getDateOfBirth())
+                .preferences(user.getPreferences())
+                .loyaltyPoints(user.getLoyaltyPoints())
+                .tierLevel(user.getTierLevel())
                 .role(user.getRole())
-                .isActive(user.getIsActive())
-                .isVerified(user.getIsVerified())
+                .status(user.getStatus())
+                .isEmailVerified(user.getIsEmailVerified())
+                .lastLoginAt(user.getLastLoginAt())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
