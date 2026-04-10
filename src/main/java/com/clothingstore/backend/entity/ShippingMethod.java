@@ -29,6 +29,9 @@ public class ShippingMethod extends BaseEntity {
     @Column(name = "base_fee", precision = 10, scale = 2)
     private BigDecimal baseFee;
 
+    @Column(name = "free_shipping_threshold", precision = 10, scale = 2)
+    private BigDecimal freeShippingThreshold;
+
     @Column(name = "estimated_days")
     private Integer estimatedDays;
 
