@@ -5,10 +5,13 @@ import com.clothingstore.backend.entity.enums.ProductGender;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Products")
@@ -50,4 +53,15 @@ public class Product extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "age_group", nullable = false)
     private AgeGroup ageGroup;
+
+    @EqualsAndHashCode.Exclude
+    @BatchSize(size = 50)
+    @OrderBy("sortOrder ASC, id ASC")
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<ProductImage> images = new ArrayList<>();
+
+    @EqualsAndHashCode.Exclude
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<ProductVariant> variants = new ArrayList<>();
 }

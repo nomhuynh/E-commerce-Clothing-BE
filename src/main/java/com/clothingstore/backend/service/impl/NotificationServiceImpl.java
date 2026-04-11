@@ -6,6 +6,7 @@ import com.clothingstore.backend.repository.NotificationRepository;
 import com.clothingstore.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,6 +35,23 @@ public class NotificationServiceImpl implements NotificationService {
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
         notification.setIsRead(true);
         notificationRepository.save(notification);
+    }
+
+    @Override
+    @Transactional
+    public void markAllReadForUser(String userId) {
+        notificationRepository.markAllReadByUserId(userId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteForUser(String notificationId, String userId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+        if (notification.getUser() == null || !userId.equals(notification.getUser().getId())) {
+            throw new RuntimeException("Forbidden");
+        }
+        notificationRepository.delete(notification);
     }
 
     private NotificationResponse toResponse(Notification n) {

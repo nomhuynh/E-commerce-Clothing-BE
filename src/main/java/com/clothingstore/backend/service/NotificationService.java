@@ -6,6 +6,12 @@ import java.util.List;
 
 public interface NotificationService {
     List<NotificationResponse> getByUser(String userId);
+
     long getUnreadCount(String userId);
+
     void markAsRead(String notificationId);
+
+    void markAllReadForUser(String userId);
+
+    void deleteForUser(String notificationId, String userId);
 }
