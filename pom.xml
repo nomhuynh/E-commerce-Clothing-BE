@@ -109,6 +109,13 @@
 			<version>2.2.0</version>
 		</dependency>
 
+		<!-- Gemini API (https://ai.google.dev/gemini-api/docs/quickstart#java) -->
+		<dependency>
+			<groupId>com.google.genai</groupId>
+			<artifactId>google-genai</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
 		<!-- Swagger / OpenAPI -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
