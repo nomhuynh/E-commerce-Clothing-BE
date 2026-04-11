@@ -66,7 +66,7 @@ public class AddressController {
         address.setPhoneNumber(request.getPhoneNumber());
         address.setStreetAddress(request.getStreetAddress());
         address.setWard(request.getWard());
-        address.setDistrict(request.getDistrict());
+        address.setDistrict(request.getDistrict() != null ? request.getDistrict() : "");
         address.setCity(request.getCity());
         if (request.getIsDefault() != null) {
             address.setIsDefault(request.getIsDefault());

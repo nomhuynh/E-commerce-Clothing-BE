@@ -23,18 +23,35 @@ public class WishlistController {
     private final WishlistService wishlistService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<WishlistResponse>> add(@Valid @RequestBody WishlistRequest request) {
+    public ResponseEntity<ApiResponse<WishlistResponse>> add(
+            @Valid @RequestBody WishlistRequest request,
+            Authentication authentication) {
+        String uid = requireUserId(authentication);
+        request.setUserId(uid);
         return ResponseEntity.ok(ApiResponse.success("Added to wishlist", wishlistService.add(request)));
     }
 
     @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> remove(@RequestParam String userId, @RequestParam String productId) {
+    public ResponseEntity<ApiResponse<Void>> remove(
+            @RequestParam String userId,
+            @RequestParam String productId,
+            Authentication authentication) {
+        String uid = requireUserId(authentication);
+        if (!uid.equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
         wishlistService.remove(userId, productId);
         return ResponseEntity.ok(ApiResponse.success("Removed from wishlist", null));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<List<WishlistResponse>>> getByUser(@PathVariable String userId) {
+    public ResponseEntity<ApiResponse<List<WishlistResponse>>> getByUser(
+            @PathVariable String userId,
+            Authentication authentication) {
+        String uid = requireUserId(authentication);
+        if (!uid.equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
         return ResponseEntity.ok(ApiResponse.success("Wishlist fetched", wishlistService.getByUser(userId)));
     }
 

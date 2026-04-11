@@ -1,6 +1,9 @@
 package com.clothingstore.backend.dto.coupon;
 
 import com.clothingstore.backend.entity.enums.DiscountType;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,7 +12,9 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CouponResponse {
+    @JsonProperty("coupon_id")
     private String id;
     private String code;
     private String description;

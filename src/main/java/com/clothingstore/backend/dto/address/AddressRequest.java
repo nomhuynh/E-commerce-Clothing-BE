@@ -21,7 +21,7 @@ public class AddressRequest {
     @NotBlank
     private String ward;
 
-    @NotBlank
+    /** Optional — no Bean Validation; persisted as empty string if omitted. */
     private String district;
 
     @NotBlank

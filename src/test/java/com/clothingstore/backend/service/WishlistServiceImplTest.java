@@ -6,6 +6,7 @@ import com.clothingstore.backend.entity.User;
 import com.clothingstore.backend.repository.ProductRepository;
 import com.clothingstore.backend.repository.UserRepository;
 import com.clothingstore.backend.repository.WishlistRepository;
+import com.clothingstore.backend.service.ProductPromotionEnrichmentService;
 import com.clothingstore.backend.service.impl.WishlistServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,7 @@ class WishlistServiceImplTest {
     @Mock private WishlistRepository wishlistRepository;
     @Mock private UserRepository userRepository;
     @Mock private ProductRepository productRepository;
+    @Mock private ProductPromotionEnrichmentService productPromotionEnrichmentService;
 
     @InjectMocks
     private WishlistServiceImpl wishlistService;
