@@ -1,14 +1,20 @@
 package com.clothingstore.backend.controller;
 
 import com.clothingstore.backend.dto.ApiResponse;
+import com.clothingstore.backend.dto.admin.AdminUserListPayload;
 import com.clothingstore.backend.dto.user.UserRequest;
 import com.clothingstore.backend.dto.user.UserResponse;
 import com.clothingstore.backend.entity.User;
+import com.clothingstore.backend.entity.enums.Role;
+import com.clothingstore.backend.entity.enums.UserStatus;
 import com.clothingstore.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -20,11 +26,43 @@ public class AdminUserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getAll() {
-        List<UserResponse> data = userService.getAll().stream()
-                .map(this::toResponse)
-                .toList();
-        return ResponseEntity.ok(ApiResponse.success("Users fetched", data));
+    public ResponseEntity<ApiResponse<AdminUserListPayload>> list(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status) {
+        Role roleFilter;
+        UserStatus statusFilter;
+        try {
+            roleFilter = parseRole(role);
+            statusFilter = parseStatus(status);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role or status filter");
+        }
+        Page<User> pg = userService.findPageForAdmin(page, limit, search, roleFilter, statusFilter);
+        List<UserResponse> rows = pg.getContent().stream().map(this::toResponse).toList();
+        AdminUserListPayload payload = AdminUserListPayload.builder()
+                .users(rows)
+                .total(pg.getTotalElements())
+                .page(page)
+                .limit(limit)
+                .build();
+        return ResponseEntity.ok(ApiResponse.success("Users fetched", payload));
+    }
+
+    private static Role parseRole(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        return Role.valueOf(raw.trim().toUpperCase());
+    }
+
+    private static UserStatus parseStatus(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        return UserStatus.valueOf(raw.trim().toUpperCase());
     }
 
     @GetMapping("/{id}")

@@ -9,8 +9,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -24,8 +27,19 @@ public class OrderController {
 
     @Operation(summary = "Create order")
     @PostMapping
-    public ResponseEntity<ApiResponse<OrderResponse>> create(@Valid @RequestBody OrderRequest request) {
+    public ResponseEntity<ApiResponse<OrderResponse>> create(
+            Authentication authentication,
+            @Valid @RequestBody OrderRequest request) {
+        // Always bind order to the authenticated user (token), not client-supplied userId — avoids mismatch with VNPay create-url.
+        request.setUserId(requireUserId(authentication));
         return ResponseEntity.ok(ApiResponse.success("Order created", orderService.create(request)));
+    }
+
+    private static String requireUserId(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof String)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return (String) authentication.getPrincipal();
     }
 
     @Operation(summary = "Get my orders")
@@ -58,11 +72,5 @@ public class OrderController {
             @Valid @RequestBody(required = false) OrderReturnRequest request) {
         String reason = request != null ? request.getReason() : null;
         return ResponseEntity.ok(ApiResponse.success("Return requested", orderService.requestReturn(orderId, userId, reason)));
-    }
-
-    @Operation(summary = "Update order status (admin/internal)")
-    @PatchMapping("/{orderId}/status")
-    public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(@PathVariable String orderId, @RequestParam String status) {
-        return ResponseEntity.ok(ApiResponse.success("Order status updated", orderService.updateStatus(orderId, status)));
     }
 }

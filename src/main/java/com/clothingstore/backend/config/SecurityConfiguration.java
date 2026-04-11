@@ -78,6 +78,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/v1/shipping/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/shipping/calculate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/coupons/validate").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/payments/callback/vnpay").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated());
         return http.build();

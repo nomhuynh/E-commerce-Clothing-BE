@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -32,11 +34,14 @@ public class ProductVariant extends BaseEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    /** IGNORE: FK may point at soft-deleted Color; avoid EntityNotFound when building cart/API responses. */
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "color_id", nullable = false)
     private Color color;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "size_id", nullable = false)
     private Size size;
 

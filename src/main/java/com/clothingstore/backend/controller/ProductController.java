@@ -70,12 +70,14 @@ public class ProductController {
     @Operation(summary = "Get product variants")
     @GetMapping("/{productId}/variants")
     public ResponseEntity<ApiResponse<List<ProductVariant>>> getVariantsByProduct(@PathVariable String productId) {
-        return ResponseEntity.ok(ApiResponse.success("Variants fetched", productVariantService.getByProductId(productId)));
+        return ResponseEntity
+                .ok(ApiResponse.success("Variants fetched", productVariantService.getByProductId(productId)));
     }
 
     @Operation(summary = "Create product variant")
     @PostMapping("/{productId}/variants")
-    public ResponseEntity<ApiResponse<ProductVariant>> createVariant(@PathVariable String productId, @RequestBody ProductVariant variant) {
+    public ResponseEntity<ApiResponse<ProductVariant>> createVariant(@PathVariable String productId,
+            @RequestBody ProductVariant variant) {
         if (variant.getProduct() == null) {
             Product p = new Product();
             p.setId(productId);
@@ -87,8 +89,8 @@ public class ProductController {
     @Operation(summary = "Update product variant")
     @PatchMapping("/{productId}/variants/{id}")
     public ResponseEntity<ApiResponse<ProductVariant>> updateVariant(@PathVariable String productId,
-                                                                     @PathVariable String id,
-                                                                     @RequestBody ProductVariant variant) {
+            @PathVariable String id,
+            @RequestBody ProductVariant variant) {
         variant.setId(id);
         if (variant.getProduct() == null) {
             Product p = new Product();
@@ -101,7 +103,7 @@ public class ProductController {
     @Operation(summary = "Delete product variant")
     @DeleteMapping("/{productId}/variants/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteVariant(@PathVariable String productId,
-                                                           @PathVariable String id) {
+            @PathVariable String id) {
         productVariantService.delete(id);
         return ResponseEntity.ok(ApiResponse.success("Variant deleted", null));
     }
@@ -109,9 +111,22 @@ public class ProductController {
     @Operation(summary = "Update variant stock")
     @PatchMapping("/{productId}/variants/{id}/stock")
     public ResponseEntity<ApiResponse<ProductVariant>> updateStock(@PathVariable String productId,
-                                                                   @PathVariable String id,
-                                                                   @RequestParam Integer quantity,
-                                                                   @RequestParam(defaultValue = "increase") String operation) {
-        return ResponseEntity.ok(ApiResponse.success("Stock updated", productVariantService.updateStock(id, quantity, operation)));
+            @PathVariable String id,
+            @RequestParam Integer quantity,
+            @RequestParam(defaultValue = "increase") String operation) {
+        return ResponseEntity
+                .ok(ApiResponse.success("Stock updated", productVariantService.updateStock(id, quantity, operation)));
     }
+
 }
+
+    
+    
+    
+            
+            
+            
+        
+                
+    
+

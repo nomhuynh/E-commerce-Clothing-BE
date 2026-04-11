@@ -1,11 +1,17 @@
 package com.clothingstore.backend.entity;
 
+import com.clothingstore.backend.dto.product.ProductActivePromotionDto;
 import com.clothingstore.backend.entity.enums.AgeGroup;
 import com.clothingstore.backend.entity.enums.ProductGender;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -62,6 +68,27 @@ public class Product extends BaseEntity {
 
     @EqualsAndHashCode.Exclude
     @BatchSize(size = 50)
+    @Fetch(FetchMode.SUBSELECT)
+    @OrderBy("id ASC")
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<ProductVariant> variants = new ArrayList<>();
+
+    /**
+     * Best active promotion for storefront (not persisted).
+     * Explicit accessor so JSON key is {@code active_promotion} (not {@code activePromotion}).
+     */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private ProductActivePromotionDto activePromotion;
+
+    @JsonProperty("active_promotion")
+    public ProductActivePromotionDto getActivePromotion() {
+        return activePromotion;
+    }
+
+    public void setActivePromotion(ProductActivePromotionDto activePromotion) {
+        this.activePromotion = activePromotion;
+    }
 }

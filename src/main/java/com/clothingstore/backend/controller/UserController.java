@@ -5,15 +5,18 @@ import com.clothingstore.backend.dto.user.UpdateProfileRequest;
 import com.clothingstore.backend.dto.user.UserRequest;
 import com.clothingstore.backend.dto.user.UserResponse;
 import com.clothingstore.backend.entity.User;
+import com.clothingstore.backend.service.CloudinaryUploadService;
 import com.clothingstore.backend.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -26,8 +29,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
+    private static final String AVATAR_FOLDER = "stylex/avatars";
+
     private final UserService userService;
     private final ObjectMapper objectMapper;
+    private final CloudinaryUploadService cloudinaryUploadService;
 
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<UserResponse>> getProfile(Authentication authentication) {
@@ -69,6 +75,18 @@ public class UserController {
         }
         User updated = userService.update(user);
         return ResponseEntity.ok(ApiResponse.success("Profile updated", toResponse(updated)));
+    }
+
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<UserResponse>> uploadAvatar(
+            Authentication authentication,
+            @RequestPart("avatar") MultipartFile file) {
+        String userId = requireUserId(authentication);
+        String url = cloudinaryUploadService.uploadImage(file, AVATAR_FOLDER);
+        User user = userService.getById(userId);
+        user.setAvatarUrl(url);
+        User updated = userService.update(user);
+        return ResponseEntity.ok(ApiResponse.success("Avatar updated", toResponse(updated)));
     }
 
     private String requireUserId(Authentication authentication) {
