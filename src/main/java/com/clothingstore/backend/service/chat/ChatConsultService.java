@@ -90,6 +90,8 @@ public class ChatConsultService {
         }
     }
 
+    /** Số SP tối đa lấy từ DB để prompt AI so sánh / chọn (≥ số thẻ hiển thị). */
+    private static final int PRODUCT_SEARCH_LIMIT = 10;
     private static final int MAX_SUGGESTED_CARDS = 5;
 
     private ChatConsultResponse consultWithProductSearch(String userMessage) {
@@ -102,7 +104,7 @@ public class ChatConsultService {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI extraction failed: " + e.getMessage(), e);
         }
 
-        List<ProductSnippet> products = productCatalogSearchService.search(intent, 5);
+        List<ProductSnippet> products = productCatalogSearchService.search(intent, PRODUCT_SEARCH_LIMIT);
         String productBlock = formatProductsForPrompt(intent, products);
 
         List<Map<String, String>> messages = new ArrayList<>();
