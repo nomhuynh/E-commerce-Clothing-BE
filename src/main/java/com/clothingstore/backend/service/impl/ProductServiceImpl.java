@@ -32,21 +32,21 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product getById(String id) {
-        return productRepository.findById(id)
+        return productRepository.findByIdWithImages(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
     @Override
     public List<Product> getAll() {
-        return productRepository.findAll();
+        return productRepository.findAllWithCategoryAndMaterial();
     }
 
     @Override
     public List<Product> search(String keyword) {
         if (keyword == null || keyword.isBlank()) {
-            return productRepository.findAll();
+            return productRepository.findAllWithCategoryAndMaterial();
         }
-        return productRepository.findByNameContainingIgnoreCase(keyword);
+        return productRepository.searchByNameContainingIgnoreCase(keyword);
     }
 
     @Override

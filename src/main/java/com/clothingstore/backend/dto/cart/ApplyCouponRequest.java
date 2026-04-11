@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class ApplyCouponRequest {
-    @NotBlank
+    /** Optional when Authorization bearer token identifies the user. */
     private String userId;
 
     @NotBlank

@@ -1,15 +1,24 @@
 package com.clothingstore.backend.controller;
 
 import com.clothingstore.backend.dto.ApiResponse;
+import com.clothingstore.backend.dto.user.UpdateProfileRequest;
 import com.clothingstore.backend.dto.user.UserRequest;
 import com.clothingstore.backend.dto.user.UserResponse;
 import com.clothingstore.backend.entity.User;
 import com.clothingstore.backend.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -18,6 +27,56 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final ObjectMapper objectMapper;
+
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<UserResponse>> getProfile(Authentication authentication) {
+        String userId = requireUserId(authentication);
+        return ResponseEntity.ok(ApiResponse.success("Profile fetched", toResponse(userService.getById(userId))));
+    }
+
+    @PatchMapping("/profile")
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
+            Authentication authentication,
+            @RequestBody UpdateProfileRequest request) throws JsonProcessingException {
+        String userId = requireUserId(authentication);
+        User user = userService.getById(userId);
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+        if (request.getGender() != null) {
+            user.setGender(request.getGender());
+        }
+        if (request.getDateOfBirth() != null && !request.getDateOfBirth().isBlank()) {
+            try {
+                user.setDateOfBirth(LocalDate.parse(request.getDateOfBirth(), DateTimeFormatter.ISO_LOCAL_DATE));
+            } catch (DateTimeParseException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date_of_birth, use ISO-8601 (yyyy-MM-dd)");
+            }
+        }
+        if (request.getPreferences() != null) {
+            if (request.getPreferences() instanceof String s) {
+                user.setPreferences(s);
+            } else {
+                user.setPreferences(objectMapper.writeValueAsString(request.getPreferences()));
+            }
+        }
+        User updated = userService.update(user);
+        return ResponseEntity.ok(ApiResponse.success("Profile updated", toResponse(updated)));
+    }
+
+    private String requireUserId(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof String)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return (String) authentication.getPrincipal();
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> create(@Valid @RequestBody UserRequest request) {

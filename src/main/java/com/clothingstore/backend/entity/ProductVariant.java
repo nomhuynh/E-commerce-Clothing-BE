@@ -1,5 +1,6 @@
 package com.clothingstore.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 @SQLDelete(sql = "UPDATE ProductVariants SET deleted_at = CURRENT_TIMESTAMP WHERE variant_id = ?")
 @SQLRestriction("deleted_at IS NULL")
+@JsonIgnoreProperties({"product", "hibernateLazyInitializer", "handler"})
 public class ProductVariant extends BaseEntity {
 
     @Id

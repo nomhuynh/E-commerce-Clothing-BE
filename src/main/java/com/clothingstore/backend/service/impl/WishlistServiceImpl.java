@@ -48,6 +48,11 @@ public class WishlistServiceImpl implements WishlistService {
         return wishlistRepository.findByUserId(userId).stream().map(this::toResponse).toList();
     }
 
+    @Override
+    public boolean isInWishlist(String userId, String productId) {
+        return wishlistRepository.findByUserIdAndProductId(userId, productId).isPresent();
+    }
+
     private WishlistResponse toResponse(Wishlist wishlist) {
         return WishlistResponse.builder()
                 .id(wishlist.getId())

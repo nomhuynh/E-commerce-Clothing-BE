@@ -1,5 +1,6 @@
 package com.clothingstore.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -15,6 +16,7 @@ import org.hibernate.annotations.SQLRestriction;
 @EqualsAndHashCode(callSuper = true)
 @SQLDelete(sql = "UPDATE ProductImages SET deleted_at = CURRENT_TIMESTAMP WHERE image_id = ?")
 @SQLRestriction("deleted_at IS NULL")
+@JsonIgnoreProperties({"product", "hibernateLazyInitializer", "handler"})
 public class ProductImage extends BaseEntity {
 
     @Id

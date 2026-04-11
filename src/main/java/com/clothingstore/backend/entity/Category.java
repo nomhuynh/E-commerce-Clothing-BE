@@ -1,5 +1,6 @@
 package com.clothingstore.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -13,6 +14,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties({"parent", "hibernateLazyInitializer", "handler"})
 @SQLDelete(sql = "UPDATE Categories SET deleted_at = CURRENT_TIMESTAMP WHERE category_id = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class Category extends BaseEntity {

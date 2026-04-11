@@ -3,14 +3,21 @@ package com.clothingstore.backend.controller;
 import com.clothingstore.backend.dto.ApiResponse;
 import com.clothingstore.backend.dto.coupon.CouponRequest;
 import com.clothingstore.backend.dto.coupon.CouponResponse;
+import com.clothingstore.backend.dto.coupon.CouponValidateRequest;
 import com.clothingstore.backend.entity.Coupon;
+import com.clothingstore.backend.entity.enums.DiscountType;
 import com.clothingstore.backend.service.CouponService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/coupons")
@@ -18,6 +25,51 @@ import java.util.List;
 public class CouponController {
 
     private final CouponService couponService;
+
+    @PostMapping("/validate")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> validate(@Valid @RequestBody CouponValidateRequest req) {
+        Coupon c;
+        try {
+            c = couponService.getByCode(req.getCode().trim());
+        } catch (RuntimeException ex) {
+            return ResponseEntity.ok(ApiResponse.success("Invalid coupon", invalidCouponResponse()));
+        }
+        LocalDateTime now = LocalDateTime.now();
+        if (Boolean.FALSE.equals(c.getIsActive()) || now.isBefore(c.getStartDate()) || now.isAfter(c.getEndDate())) {
+            return ResponseEntity.ok(ApiResponse.success("Coupon not active", invalidCouponResponse()));
+        }
+        BigDecimal subtotal = req.getTotalAmount() != null ? req.getTotalAmount() : BigDecimal.ZERO;
+        BigDecimal minOrder = c.getMinOrderValue() != null ? c.getMinOrderValue() : BigDecimal.ZERO;
+        if (subtotal.compareTo(minOrder) < 0) {
+            Map<String, Object> m = new HashMap<>(invalidCouponResponse());
+            m.put("message", "Order total below minimum for this coupon");
+            return ResponseEntity.ok(ApiResponse.success("Below minimum", m));
+        }
+        BigDecimal discount;
+        if (c.getDiscountType() == DiscountType.percentage) {
+            discount = subtotal.multiply(c.getDiscountValue()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        } else {
+            discount = c.getDiscountValue();
+        }
+        if (c.getMaxDiscountAmount() != null && discount.compareTo(c.getMaxDiscountAmount()) > 0) {
+            discount = c.getMaxDiscountAmount();
+        }
+        if (discount.compareTo(subtotal) > 0) {
+            discount = subtotal;
+        }
+        Map<String, Object> ok = new HashMap<>();
+        ok.put("valid", true);
+        ok.put("discount_amount", discount);
+        ok.put("coupon", toResponse(c));
+        return ResponseEntity.ok(ApiResponse.success("Coupon applicable", ok));
+    }
+
+    private static Map<String, Object> invalidCouponResponse() {
+        Map<String, Object> m = new HashMap<>();
+        m.put("valid", false);
+        m.put("discount_amount", BigDecimal.ZERO);
+        return m;
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<CouponResponse>> create(@Valid @RequestBody CouponRequest request) {

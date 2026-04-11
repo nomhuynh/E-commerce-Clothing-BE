@@ -5,6 +5,9 @@ import com.clothingstore.backend.entity.enums.Gender;
 import com.clothingstore.backend.entity.enums.Role;
 import com.clothingstore.backend.entity.enums.TierLevel;
 import com.clothingstore.backend.entity.enums.UserStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +16,9 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserResponse {
+    @JsonProperty("user_id")
     private String id;
     private String email;
     private String phoneNumber;

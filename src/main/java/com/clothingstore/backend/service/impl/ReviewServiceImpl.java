@@ -2,6 +2,7 @@ package com.clothingstore.backend.service.impl;
 
 import com.clothingstore.backend.dto.review.ReviewRequest;
 import com.clothingstore.backend.dto.review.ReviewResponse;
+import com.clothingstore.backend.dto.review.ReviewUpdateRequest;
 import com.clothingstore.backend.entity.Product;
 import com.clothingstore.backend.entity.Review;
 import com.clothingstore.backend.entity.User;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,12 +48,18 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public ReviewResponse update(String id, ReviewRequest request) {
+    public ReviewResponse update(String id, ReviewUpdateRequest request) {
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Review not found"));
-        review.setRating(request.getRating());
-        review.setTitle(request.getTitle());
-        review.setContent(request.getContent());
+        if (request.getRating() != null) {
+            review.setRating(request.getRating());
+        }
+        if (request.getTitle() != null) {
+            review.setTitle(request.getTitle());
+        }
+        if (request.getContent() != null) {
+            review.setContent(request.getContent());
+        }
         return toResponse(reviewRepository.save(review));
     }
 
@@ -59,6 +67,11 @@ public class ReviewServiceImpl implements ReviewService {
     public List<ReviewResponse> getByProduct(String productId) {
         return reviewRepository.findByProductIdAndStatus(productId, ReviewStatus.APPROVED)
                 .stream().map(this::toResponse).toList();
+    }
+
+    @Override
+    public Optional<ReviewResponse> getByUserAndProduct(String userId, String productId) {
+        return reviewRepository.findByUserIdAndProductId(userId, productId).map(this::toResponse);
     }
 
     @Override
